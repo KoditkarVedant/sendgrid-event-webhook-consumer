@@ -1,4 +1,6 @@
-﻿namespace EventWebhook.Models
+﻿using System.Runtime.Serialization;
+
+namespace EventWebhook.Models
 {
     public enum EventType
     {
@@ -11,7 +13,9 @@
         Dropped,
         SpamReport,
         Unsubscribe,
+        [EnumMember(Value = "group_unsubscribe")]
         GroupUnsubscribe,
+        [EnumMember(Value = "group_resubscribe")]
         GroupResubscribe
     }
 }
