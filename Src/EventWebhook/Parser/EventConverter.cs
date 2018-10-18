@@ -11,17 +11,17 @@ namespace EventWebhook.Parser
         private static readonly Dictionary<EventType, Func<string, Event>> eventConverters =
             new Dictionary<EventType, Func<string, Event>>()
             {
-                { EventType.Bounce, (json) => JsonConvert.DeserializeObject<OpenEvent>(json) },
+                { EventType.Bounce, (json) => JsonConvert.DeserializeObject<BounceEvent>(json) },
                 { EventType.Click, (json) => JsonConvert.DeserializeObject<ClickEvent>(json) },
                 { EventType.Deferred, (json) => JsonConvert.DeserializeObject<DeferredEvent>(json) },
                 { EventType.Delivered, (json) => JsonConvert.DeserializeObject<DeliveredEvent>(json) },
                 { EventType.Dropped, (json) => JsonConvert.DeserializeObject<DroppedEvent>(json) },
-                { EventType.GroupResubscribe, (json) => JsonConvert.DeserializeObject<GroupResubscriveEvent>(json) },
+                { EventType.GroupResubscribe, (json) => JsonConvert.DeserializeObject<GroupResubscribeEvent>(json) },
                 { EventType.GroupUnsubscribe, (json) => JsonConvert.DeserializeObject<GroupUnsubscribeEvent>(json) },
                 { EventType.Open, (json) => JsonConvert.DeserializeObject<OpenEvent>(json) },
                 { EventType.Processed, (json) => JsonConvert.DeserializeObject<ProcessedEvent>(json) },
                 { EventType.SpamReport, (json) => JsonConvert.DeserializeObject<SpamReportEvent>(json) },
-                { EventType.Unsubscribe, (json) => JsonConvert.DeserializeObject<UnSubscribeEvent>(json) },
+                { EventType.Unsubscribe, (json) => JsonConvert.DeserializeObject<UnsubscribeEvent>(json) },
             };
 
         private static Event DeserializeEvent(EventType type, string json)
@@ -38,10 +38,13 @@ namespace EventWebhook.Parser
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            var eventToken = JToken.ReadFrom(reader);
-            var eventType = eventToken.Value<EventType>("event");
+            var jsonObject = JObject.Load(reader);
 
-            var webhookEvent = DeserializeEvent(eventType, eventToken.ToString());
+            jsonObject.TryGetValue("event", StringComparison.OrdinalIgnoreCase, out JToken eventTypeJsonProperty);
+
+            var eventType = (EventType)eventTypeJsonProperty.ToObject(typeof(EventType));
+
+            var webhookEvent = DeserializeEvent(eventType, jsonObject.ToString());
 
             return webhookEvent;
         }
